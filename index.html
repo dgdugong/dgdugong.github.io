@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德语背单词 · 卡片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0e0e12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .app {
+            max-width: 700px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* 卡片容器 */
+        .card-scene {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            perspective: 1800px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+            border-radius: 2rem;
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 2rem;
+            padding: 2rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a22;
+            background: linear-gradient(145deg, #1e1e26, #14141a);
+            color: #f0f0f5;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03);
+        }
+
+        /* 卡片正面 */
+        .card-front {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 0.8rem;
+        }
+
+        .word-type {
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #8a8aa0;
+            font-weight: 400;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .german-word {
+            font-size: 3.6rem;
+            font-weight: 700;
+            line-height: 1.2;
+            word-break: break-word;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            margin: 0.2rem 0;
+        }
+
+        .phonetic {
+            font-size: 1.3rem;
+            color: #a0a0b8;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        .article-badge {
+            display: inline-block;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #b0b0d0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            margin-bottom: 0.2rem;
+        }
+
+        /* 卡片背面 */
+        .card-back {
+            transform: rotateY(180deg);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 1.5rem;
+        }
+
+        .chinese-meaning {
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: #e8e8ff;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .example-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            border-left: 3px solid #5e5e8a;
+            max-width: 90%;
+        }
+
+        .example-de {
+            font-size: 1.1rem;
+            color: #c8c8e0;
+            font-style: italic;
+            margin-bottom: 0.4rem;
+            line-height: 1.5;
+        }
+
+        .example-zh {
+            font-size: 0.95rem;
+            color: #9a9ab0;
+            line-height: 1.4;
+        }
+
+        /* 发音按钮 */
+        .speak-btn {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.8rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #d0d0f0;
+            width: 3.2rem;
+            height: 3.2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+
+        .speak-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            color: #ffffff;
+        }
+
+        .speak-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 导航按钮 */
+        .nav-buttons {
+            display: flex;
+            gap: 1.5rem;
+            width: 100%;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .nav-btn {
+            background: #1e1e28;
+            border: 1px solid #2e2e3a;
+            color: #c0c0d8;
+            padding: 1rem 2.2rem;
+            border-radius: 3rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.6);
+            letter-spacing: 0.3px;
+            flex: 0 1 auto;
+        }
+
+        .nav-btn:hover {
+            background: #2a2a36;
+            border-color: #4a4a5e;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.8);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+
+        /* 进度指示 */
+        .progress {
+            font-size: 0.95rem;
+            color: #6a6a80;
+            letter-spacing: 1px;
+            background: #16161c;
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            border: 1px solid #26262e;
+        }
+
+        /* 小提示 */
+        .hint {
+            font-size: 0.8rem;
+            color: #4a4a5a;
+            margin-top: -0.5rem;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .german-word {
+                font-size: 2.6rem;
+            }
+            .chinese-meaning {
+                font-size: 1.8rem;
+            }
+            .card-face {
+                padding: 1.5rem 1rem;
+            }
+            .nav-btn {
+                padding: 0.8rem 1.4rem;
+                font-size: 1rem;
+            }
+            .speak-btn {
+                width: 2.8rem;
+                height: 2.8rem;
+                font-size: 1.4rem;
+                bottom: 1rem;
+                right: 1rem;
+            }
+            .example-box {
+                padding: 0.8rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- 卡片区域 -->
+        <div class="card-scene" id="cardScene">
+            <div class="card" id="card">
+                <!-- 正面：德语信息 -->
+                <div class="card-face card-front">
+                    <div class="article-badge" id="articleBadge">der</div>
+                    <div class="german-word" id="germanWord">Hund</div>
+                    <div class="phonetic" id="phonetic">[hʊnt]</div>
+                    <div class="word-type" id="wordType">Nomen</div>
+                    <!-- 发音按钮（正面） -->
+                    <button class="speak-btn" id="speakBtnFront" aria-label="朗读德语单词">🔊</button>
+                </div>
+                <!-- 背面：中文释义 + 例句 -->
+                <div class="card-face card-back">
+                    <div class="chinese-meaning" id="chineseMeaning">狗</div>
+                    <div class="example-box">
+                        <div class="example-de" id="exampleDe">Der Hund spielt im Garten.</div>
+                        <div class="example-zh" id="exampleZh">狗在花园里玩耍。</div>
+                    </div>
+                    <!-- 发音按钮（背面） -->
+                    <button class="speak-btn" id="speakBtnBack" aria-label="朗读德语单词">🔊</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 进度显示 -->
+        <div class="progress" id="progress">1 / 10</div>
+
+        <!-- 导航按钮 -->
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn">← 上一个</button>
+            <button class="nav-btn" id="nextBtn">下一个 →</button>
+        </div>
+        <div class="hint">点击卡片翻转 · 点击🔊朗读</div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 德语词库 —— 你可以直接修改这个数组来新增/编辑单词
+        // 每个单词对象包含：
+        //   article: 名词词性 (der/die/das) 或 null (非名词)
+        //   word: 德语单词
+        //   phonetic: 音标 (字符串)
+        //   meaning: 中文释义
+        //   exampleDe: 德语例句
+        //   exampleZh: 例句中文翻译
+        //   type: 词性描述 (可选，默认 'Nomen')
+        // ============================================================
+        const vocabulary = [
+            {
+                article: 'der',
+                word: 'Hund',
+                phonetic: '[hʊnt]',
+                meaning: '狗',
+                exampleDe: 'Der Hund spielt im Garten.',
+                exampleZh: '狗在花园里玩耍。',
+                type: 'Nomen'
+            },
+            {
+                article: 'die',
+                word: 'Katze',
+                phonetic: '[ˈkatsə]',
+                meaning: '猫',
+                exampleDe: 'Die Katze schläft auf dem Sofa.',
+                exampleZh: '猫在沙发上睡觉。',
+                type: 'Nomen'
+            },
+            {
+                article: 'das',
+                word: 'Haus',
+                phonetic: '[haʊs]',
+                meaning: '房子',
+                exampleDe: 'Das Haus ist sehr groß.',
+                exampleZh: '这栋房子非常大。',
+                type: 'Nomen'
+            },
+            {
+                article: 'der',
+                word: 'Baum',
+                phonetic: '[baʊm]',
+                meaning: '树',
+                exampleDe: 'Der Baum steht vor dem Fenster.',
+                exampleZh: '树在窗户前面。',
+                type: 'Nomen'
+            },
+            {
+                article: 'die',
+                word: 'Blume',
+                phonetic: '[ˈbluːmə]',
+                meaning: '花',
+                exampleDe: 'Die Blume riecht wunderbar.',
+                exampleZh: '这朵花闻起来很香。',
+                type: 'Nomen'
+            },
+            {
+                article: 'das',
+                word: 'Buch',
+                phonetic: '[buːx]',
+                meaning: '书',
+                exampleDe: 'Das Buch liegt auf dem Tisch.',
+                exampleZh: '书在桌子上。',
+                type: 'Nomen'
+            },
+            {
+                article: 'der',
+                word: 'Apfel',
+                phonetic: '[ˈapfl̩]',
+                meaning: '苹果',
+                exampleDe: 'Der Apfel ist rot und süß.',
+                exampleZh: '苹果又红又甜。',
+                type: 'Nomen'
+            },
+            {
+                article: 'die',
+                word: 'Sonne',
+                phonetic: '[ˈzɔnə]',
+                meaning: '太阳',
+                exampleDe: 'Die Sonne scheint hell.',
+                exampleZh: '太阳明亮地照耀着。',
+                type: 'Nomen'
+            },
+            {
+                article: 'das',
+                word: 'Wasser',
+                phonetic: '[ˈvasɐ]',
+                meaning: '水',
+                exampleDe: 'Das Wasser ist kalt.',
+                exampleZh: '水是冷的。',
+                type: 'Nomen'
+            },
+            {
+                article: 'der',
+                word: 'Freund',
+                phonetic: '[fʁɔɪnt]',
+                meaning: '朋友',
+                exampleDe: 'Mein Freund kommt aus Berlin.',
+                exampleZh: '我的朋友来自柏林。',
+                type: 'Nomen'
+            }
+        ];
+
+        // ---------- 全局变量 ----------
+        let currentIndex = 0;               // 当前单词索引
+        const card = document.getElementById('card');
+        const cardScene = document.getElementById('cardScene');
+        const germanWordEl = document.getElementById('germanWord');
+        const articleBadgeEl = document.getElementById('articleBadge');
+        const phoneticEl = document.getElementById('phonetic');
+        const wordTypeEl = document.getElementById('wordType');
+        const chineseMeaningEl = document.getElementById('chineseMeaning');
+        const exampleDeEl = document.getElementById('exampleDe');
+        const exampleZhEl = document.getElementById('exampleZh');
+        const progressEl = document.getElementById('progress');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const speakBtnFront = document.getElementById('speakBtnFront');
+        const speakBtnBack = document.getElementById('speakBtnBack');
+
+        // 语音合成对象
+        let synth = window.speechSynthesis;
+        // 德语语音 (延迟加载)
+        let germanVoice = null;
+
+        // ---------- 初始化语音 ----------
+        function loadVoices() {
+            if (!synth) return;
+            const voices = synth.getVoices();
+            // 尝试找德语语音 (de-DE 或 de)
+            germanVoice = voices.find(v => v.lang === 'de-DE' || v.lang === 'de') || null;
+            // 如果没找到，就用默认语音，但设置语言为德语
+        }
+
+        // 语音列表可能异步加载
+        if (synth) {
+            synth.onvoiceschanged = loadVoices;
+            // 立即尝试加载一次
+            loadVoices();
+        }
+
+        // ---------- 朗读德语单词 ----------
+        function speakGermanWord() {
+            if (!synth) {
+                alert('您的浏览器不支持语音合成，请使用最新版 Chrome/Edge/Safari。');
+                return;
+            }
+
+            const currentWord = vocabulary[currentIndex].word;
+            // 取消任何正在进行的语音，避免重叠
+            synth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(currentWord);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.9;      // 稍慢一点，便于学习
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            // 如果有德语语音，使用它
+            if (germanVoice) {
+                utterance.voice = germanVoice;
+            }
+
+            synth.speak(utterance);
+        }
+
+        // ---------- 更新卡片内容 (根据 currentIndex) ----------
+        function updateCard() {
+            const data = vocabulary[currentIndex];
+            if (!data) return;
+
+            // 正面
+            // 词性显示: 如果有 article 则显示，否则显示 '—' 或留空
+            articleBadgeEl.textContent = data.article ? data.article : '·';
+            // 如果 article 为空，可以隐藏或显示占位符，这里保留显示点
+            if (!data.article) {
+                articleBadgeEl.style.opacity = '0.3';
+            } else {
+                articleBadgeEl.style.opacity = '1';
+            }
+
+            germanWordEl.textContent = data.word;
+            phoneticEl.textContent = data.phonetic || '[ ]';
+            wordTypeEl.textContent = data.type || 'Nomen';
+
+            // 背面
+            chineseMeaningEl.textContent = data.meaning;
+            exampleDeEl.textContent = data.exampleDe || '—';
+            exampleZhEl.textContent = data.exampleZh || '—';
+
+            // 进度
+            progressEl.textContent = `${currentIndex + 1} / ${vocabulary.length}`;
+
+            // 按钮状态 (如果只有一个单词，两个按钮都禁用)
+            if (vocabulary.length <= 1) {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+            } else {
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+            }
+
+            // 确保卡片显示正面 (翻转状态重置)
+            card.classList.remove('flipped');
+        }
+
+        // ---------- 翻转卡片 ----------
+        function flipCard() {
+            card.classList.toggle('flipped');
+        }
+
+        // ---------- 上一个 / 下一个 ----------
+        function goPrev() {
+            if (vocabulary.length === 0) return;
+            currentIndex = (currentIndex - 1 + vocabulary.length) % vocabulary.length;
+            updateCard();
+        }
+
+        function goNext() {
+            if (vocabulary.length === 0) return;
+            currentIndex = (currentIndex + 1) % vocabulary.length;
+            updateCard();
+        }
+
+        // ---------- 事件绑定 ----------
+        // 点击卡片翻转 (但点击发音按钮时不翻转)
+        cardScene.addEventListener('click', (e) => {
+            // 如果点击的是发音按钮，不触发翻转
+            if (e.target.closest('.speak-btn')) {
+                return;
+            }
+            flipCard();
+        });
+
+        // 发音按钮 (正面和背面)
+        speakBtnFront.addEventListener('click', (e) => {
+            e.stopPropagation();  // 防止触发卡片翻转
+            speakGermanWord();
+        });
+
+        speakBtnBack.addEventListener('click', (e) => {
+            e.stopPropagation();
+            speakGermanWord();
+        });
+
+        // 导航按钮
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goPrev();
+        });
+
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goNext();
+        });
+
+        // 键盘左右键支持 (可选)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                goPrev();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                goNext();
+            } else if (e.key === ' ' || e.key === 'Space') {
+                // 空格翻转卡片 (但避免页面滚动)
+                e.preventDefault();
+                flipCard();
+            }
+        });
+
+        // ---------- 启动 ----------
+        function init() {
+            if (vocabulary.length === 0) {
+                // 如果词库为空，显示占位符
+                germanWordEl.textContent = '—';
+                articleBadgeEl.textContent = '·';
+                phoneticEl.textContent = '[ ]';
+                chineseMeaningEl.textContent = '词库为空';
+                exampleDeEl.textContent = '请添加单词到 vocabulary 数组';
+                exampleZhEl.textContent = '';
+                progressEl.textContent = '0 / 0';
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                return;
+            }
+            // 确保语音列表加载 (部分浏览器需要用户交互后才加载，但没关系)
+            if (synth) {
+                // 再次尝试加载语音
+                loadVoices();
+            }
+            updateCard();
+        }
+
+        init();
+
+        // 额外处理：有些浏览器在用户交互后才加载voices，再次尝试
+        document.body.addEventListener('click', function once() {
+            if (synth && !germanVoice) {
+                loadVoices();
+            }
+            document.body.removeEventListener('click', once);
+        }, { once: true });
+
+    </script>
+</body>
+</html>
